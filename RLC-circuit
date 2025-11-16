@@ -1,0 +1,60 @@
+#! C:\Users\beksu\Documents\numoy\myenv\Scripts\python.exe
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import odeint
+
+# ----- Parameters -----
+R = 10   # Resistance in ohms
+L = 0.5  # Inductance in Henry
+C = 0.001  # Capacitance in Farads
+V0 = 10  # Step input voltage (Volts)
+
+# ----- Time -----
+t = np.linspace(0, 0.5, 1000)  # simulate for 0.5 seconds
+
+# ----- Differential Equation -----
+# Let x[0] = charge q(t), x[1] = current i(t) = dq/dt
+def rlc_system(x, t, R, L, C, V0):
+    q, i = x
+    dqdt = i
+    didt = (V0 - R*i - q/C)/L
+    return [dqdt, didt]
+
+# ----- Initial conditions -----
+x0 = [0, 0]  # initially, no charge and no current
+
+# ----- Solve ODE -----
+solution = odeint(rlc_system, x0, t, args=(R, L, C, V0))
+charge = solution[:, 0]
+current = solution[:, 1]
+voltage_across_capacitor = charge / C
+voltage_across_resistor = R * current
+voltage_across_inductor = L * np.gradient(current, t)
+
+# ----- Plot results -----
+plt.figure(figsize=(10, 7))
+
+plt.subplot(3,1,1)
+plt.plot(t, current, label='Current (A)', color='b')
+plt.ylabel('Current (A)')
+plt.legend()
+plt.grid(True)
+
+plt.subplot(3,1,2)
+plt.plot(t, voltage_across_resistor, label='Voltage across R (V)', color='r')
+plt.plot(t, voltage_across_capacitor, label='Voltage across C (V)', color='g')
+plt.plot(t, voltage_across_inductor, label='Voltage across L (V)', color='m')
+plt.ylabel('Voltage (V)')
+plt.legend()
+plt.grid(True)
+
+plt.subplot(3,1,3)
+plt.plot(t, voltage_across_resistor + voltage_across_capacitor + voltage_across_inductor, 
+         label='Total Voltage (V)', color='k')
+plt.xlabel('Time (s)')
+plt.ylabel('Voltage (V)')
+plt.legend()
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
