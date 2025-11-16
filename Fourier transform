@@ -1,0 +1,45 @@
+#! C:\Users\beksu\Documents\numoy\myenv\Scripts\python.exe
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import spectrogram
+
+# --- Step 1: Generate a synthetic "audio" signal ---
+sample_rate = 44100  # samples per second
+duration = 2.0       # seconds
+t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
+
+# Create a test signal: mix of sine waves (440 Hz and 1000 Hz) + random noise
+signal = (
+    0.6 * np.sin(2 * np.pi * 440 * t) +
+    0.3 * np.sin(2 * np.pi * 1000 * t) +
+    0.1 * np.random.randn(len(t))
+)
+
+# --- Step 2: Compute FFT ---
+N = len(signal)
+fft_data = np.fft.fft(signal)
+fft_freq = np.fft.fftfreq(N, 1 / sample_rate)
+
+# Keep only positive frequencies
+positive_freqs = fft_freq[:N // 2]
+magnitude = np.abs(fft_data[:N // 2]) * (2 / N)
+
+# --- Step 3: Plot the frequency spectrum ---
+plt.figure(figsize=(12, 5))
+plt.plot(positive_freqs, magnitude)
+plt.title("Frequency Spectrum (Synthetic Audio Signal)")
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Amplitude")
+plt.grid(True)
+plt.xlim(0, 5000)  # limit for visibility
+plt.show()
+
+# --- Step 4: Plot spectrogram (frequency vs. time) ---
+f, tt, Sxx = spectrogram(signal, sample_rate)
+plt.figure(figsize=(12, 5))
+plt.pcolormesh(tt, f, 10 * np.log10(Sxx), shading='gouraud')
+plt.title("Spectrogram (Synthetic Audio Signal)")
+plt.xlabel("Time [s]")
+plt.ylabel("Frequency [Hz]")
+plt.colorbar(label="Power [dB]")
+plt.show()
